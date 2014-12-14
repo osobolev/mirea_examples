@@ -81,6 +81,8 @@ public class Scene extends JComponent {
         Scene scene = new Scene();
         // ...и добавляем его в окно
         frame.add(scene);
+        // При закрытии окна выходим из приложения:
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         // Авто-определение размера окна
         frame.pack();
         // Перемещение окна в центр экрана

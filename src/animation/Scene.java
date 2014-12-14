@@ -1,9 +1,14 @@
 package animation;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 /**
  * Графический компонент с анимацией
@@ -13,18 +18,30 @@ public class Scene extends JComponent {
     // Физическая модель - все координаты объектов
     private final Model model = new Model();
 
+    private BufferedImage image;
+    private BufferedImage rotated;
+    private double angle = 0;
+
     /**
      * Конструктор компонента
      */
-    public Scene() {
+    public Scene() throws IOException {
         // Устанавливаем начальный размер компонента - 600x400
         setPreferredSize(new Dimension(600, 400));
+
+        // Загружаем картинку
+        BufferedImage tmp = ImageIO.read(getClass().getResource("barrel.png"));
+        GraphicsConfiguration cfg = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        image = cfg.createCompatibleImage(tmp.getWidth(), tmp.getHeight(), tmp.getTransparency());
+        image.getGraphics().drawImage(tmp, 0, 0, null);
+        rotated = cfg.createCompatibleImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
         // Таймер будет срабатывать каждые 20 миллисекунд (50 раз в секунду)
         Timer timer = new Timer(20, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Обновляем координаты объекта
                 model.update(getWidth());
+                angle += 5.0 / 180.0 * Math.PI;
                 // Перерисовываем картинку
                 repaint();
             }
@@ -55,9 +72,17 @@ public class Scene extends JComponent {
         // Координата Y левого верхнего угла квадрата относительно начала координат:
         int y1 = centerY - Model.SIZE / 2;
         g.drawRect(x1, y1, Model.SIZE, Model.SIZE);
+
+        Graphics2D tg = (Graphics2D) rotated.getGraphics();
+        tg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+        tg.fillRect(0, 0, rotated.getWidth(), rotated.getHeight());
+        tg.dispose();
+        AffineTransform rotate = AffineTransform.getRotateInstance(angle, image.getWidth() / 2, image.getHeight() / 2);
+        new AffineTransformOp(rotate, AffineTransformOp.TYPE_BILINEAR).filter(image, rotated);
+        g.drawImage(rotated, width / 2 - image.getWidth() / 2, 20, null);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Создаем главное окно приложения с заголовком
         JFrame frame = new JFrame("Simple animation component");
         // Создаем компонент...
