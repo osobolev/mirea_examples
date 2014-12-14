@@ -32,8 +32,11 @@ public class Scene extends JComponent {
         // Загружаем картинку
         BufferedImage tmp = ImageIO.read(getClass().getResource("barrel.png"));
         GraphicsConfiguration cfg = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        // Создаем ее копию для оптимального отображения (формат внутреннего представления должен совпадать
+        // с форматом, заданным конфигурацией графического устройства):
         image = cfg.createCompatibleImage(tmp.getWidth(), tmp.getHeight(), tmp.getTransparency());
         image.getGraphics().drawImage(tmp, 0, 0, null);
+        // Создаем пустую картинку для рисования изображения с поворотом:
         rotated = cfg.createCompatibleImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
         // Таймер будет срабатывать каждые 20 миллисекунд (50 раз в секунду)
@@ -73,12 +76,15 @@ public class Scene extends JComponent {
         int y1 = centerY - Model.SIZE / 2;
         g.drawRect(x1, y1, Model.SIZE, Model.SIZE);
 
+        // Очищаем картинку rotated - там остался результат предыдущего рисования:
         Graphics2D tg = (Graphics2D) rotated.getGraphics();
-        tg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+        tg.setComposite(AlphaComposite.Clear);
         tg.fillRect(0, 0, rotated.getWidth(), rotated.getHeight());
         tg.dispose();
+        // Помещаем в rotated картинку, созданную из image поворотом на угол angle вокруг точки - центра картинки:
         AffineTransform rotate = AffineTransform.getRotateInstance(angle, image.getWidth() / 2, image.getHeight() / 2);
         new AffineTransformOp(rotate, AffineTransformOp.TYPE_BILINEAR).filter(image, rotated);
+        // Рисуем повернутую картинку:
         g.drawImage(rotated, width / 2 - image.getWidth() / 2, 20, null);
     }
 
