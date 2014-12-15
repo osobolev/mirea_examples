@@ -25,6 +25,16 @@ public final class PolynomialRing<N> implements Ring<Polynomial<N>> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof PolynomialRing) {
+            PolynomialRing<?> that = (PolynomialRing<?>) obj;
+            return this.ring.equals(that.ring);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public String toString() {
         return ring.toString() + "[x]";
     }
